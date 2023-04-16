@@ -1,9 +1,10 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -27,11 +28,15 @@ func (r *ReviewPostgres) Create(review puregrade.Review) (int, error) {
 	return id, nil
 }
 
-func (r *ReviewPostgres) GetAll() ([]puregrade.Review, error) {
+func (r *ReviewPostgres) GetAll(page int, productId int) ([]puregrade.Review, error) {
 	var reviews []puregrade.Review
 	var query string = `select * from reviews
 						inner join reviews_products as p on p.review_id = reviews.id
 						inner join products on p.product_id = products.id`
+	if productId != 0 {
+		query += fmt.Sprintf("where products.id = %d", productId)
+	}
+	query += fmt.Sprintf("limit %d offset %d", Limit, Limit*(page-1))
 	err := r.db.Select(&reviews, query)
 	return reviews, err
 }

@@ -5,10 +5,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/spf13/viper"
 )
 
 type AuthService struct {
@@ -24,9 +26,11 @@ type jwtClaims struct {
 	jwt.StandardClaims
 }
 
-var jwtSecretKey string = "MySecretKey123"
+var jwtSecretKey string = viper.GetString("jwtsecretkey")
 
 func (s *AuthService) CreateUser(user puregrade.User) (int, error) {
+	user.Banned = false
+	user.CreatedAt = time.Now()
 	user.Password = generatePasswordHash(user.Password)
 	return s.repos.User.CreateUser(user)
 }
@@ -50,7 +54,7 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 func (s *AuthService) ParseToken(accessToken string) (int, error) {
 	token, err := jwt.ParseWithClaims(accessToken, jwtClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected singing method: %v", t.Header["alg"])
+			return nil, fmt.Errorf("unexpected singing method: %v", t.Header["alg"])
 		}
 		return jwtSecretKey, nil
 	})
@@ -63,7 +67,7 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 		return claims.UserId, nil
 	}
 
-	return 0, errors.New("Invalid access token")
+	return 0, errors.New("invalid access token")
 }
 
 func generatePasswordHash(password string) string {

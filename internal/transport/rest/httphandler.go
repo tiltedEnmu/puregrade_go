@@ -28,6 +28,11 @@ func (h *HTTPHandler) InitRoutes() *gin.Engine {
 		review.PATCH("/:id", h.AuthMiddleware, h.UpdateReview)
 		review.DELETE("/:id", h.AuthMiddleware, h.DeleteReview)
 	}
+	product := router.Group("/product")
+	{
+		product.GET("/", h.GetAllReviews)
+		product.GET("/:id", h.GetOneReview)
+	}
 
 	return router
 }

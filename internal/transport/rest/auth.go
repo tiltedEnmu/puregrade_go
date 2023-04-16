@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,14 +36,14 @@ func (h *HTTPHandler) singUp(c *gin.Context) {
 func (h *HTTPHandler) singIn(c *gin.Context) {
 	var input singInInput
 	if err := c.BindJSON(&input); err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}

@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -44,7 +44,7 @@ func (r *UserPostgres) CreateUser(user puregrade.User) (int, error) {
 
 func (r *UserPostgres) GetUser(username, password string) (puregrade.User, error) {
 	var user puregrade.User
-	query := "select * from users inner join users_follows as f on users.user_id = f.follower_id inner join users_roles as r on users.user_id = r.role_id where users.username = $1 and users.password = $2"
+	query := "select * from users inner join users_follows as f on users.id = f.follower_id inner join users_roles as r on users.id = r.role_id where users.username = $1 and users.password = $2"
 	err := r.db.Select(&user, query, username, password)
 	return user, err
 }

@@ -1,11 +1,16 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/jmoiron/sqlx"
 )
+
+// limit posts in GetAll method
+const Limit int = 20
 
 type ProductPostgres struct {
 	db *sqlx.DB
@@ -50,13 +55,26 @@ func (r *ProductPostgres) Create(product puregrade.Product) (int, error) {
 	return id, tx.Commit()
 }
 
-func (r *ProductPostgres) GetAll() ([]puregrade.Product, error) {
+func (r *ProductPostgres) GetAll(page int, filter map[string]string) ([]puregrade.Product, error) {
 	var products []puregrade.Product
 	var query string = `select * from products
 						inner join products_platforms as p on p.product_id = products.id
 						inner join platforms on p.platform_id = platforms.id
 						inner join products_genres as g on g.product_id = products.id
 						inner join genres on g.genre_id = genres.id`
+	if page <= 0 {
+		return products, errors.New("page must not be negative")
+	}
+	if len(filter) != 0 {
+		query += "where "
+		for k, v := range filter {
+			query += k + " = " + v + " and "
+		}
+		query = query[:len(query)-5]
+	}
+
+	query += fmt.Sprintf("limit %d offset %d", Limit, Limit*(page-1))
+
 	err := r.db.Select(&products, query)
 	return products, err
 }

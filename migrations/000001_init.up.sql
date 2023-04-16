@@ -7,20 +7,20 @@ create table users (
     banned boolean not null default false,
     ban_reason varchar(255),
     status varchar(255),
-    created_at datetime
+    created_at timestamp
 );
 
-create table roles {
+create table roles (
     id serial primary key,
     "name" varchar(255) not null unique
-}
+);
 
 create table products (
     id serial primary key,
     title varchar(255) not null unique,
     body varchar(2047) not null,
     release_date date not null,
-    created_at datetime
+    created_at timestamp
 );
 
 create table genres (
@@ -39,15 +39,15 @@ create table reviews (
     author_id int not null,
     product_id int not null,
     rate int not null default 50,
-    created_at datetime,
-    updated_at datetime
+    created_at timestamp,
+    updated_at timestamp
 );
 
 create table review_rating (
     id serial primary key,
     rate boolean not null, -- | 0 - dislike, 1 - like |
     review_id int not null,
-    user_id int not null
+    user_id int not null,
     foreign key ("user_id")
         references "users" ("id") on delete cascade,
     foreign key ("review_id")
@@ -60,8 +60,8 @@ create table review_comments (
     author_id int not null,
     review_id int not null,
     comment_id int,
-    created_at datetime,
-    updated_at datetime,
+    created_at timestamp,
+    updated_at timestamp,
     foreign key ("author_id")
         references "users" ("id") on delete cascade,
     foreign key ("review_id")

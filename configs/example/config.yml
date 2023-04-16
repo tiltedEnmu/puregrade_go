@@ -1,0 +1,19 @@
+port: "8080"
+
+jwtsecretkey: "MySecretKey123"
+
+db:
+  host: "localhost"
+  port: "5432"
+  username: "puregradeuser"
+  password: "pgpw4puregrade"
+  dbname: "puregradedb"
+  sslmode: "disable" # or "enable"
+
+# db:
+#   host: "localhost"
+#   port: "5432"
+#   username: "postgres"
+#   password: "root"
+#   dbname: "postgres"
+#   sslmode: "disable" # or "enable"

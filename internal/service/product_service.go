@@ -1,7 +1,7 @@
 package service
 
 import (
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
 )
 
@@ -13,8 +13,8 @@ func NewProductService(repos *repository.Repository) *ProductService {
 	return &ProductService{repos: repos}
 }
 
-func (s *ProductService) GetAll() ([]puregrade.Product, error) {
-	return s.repos.Product.GetAll()
+func (s *ProductService) GetAll(page int, filter map[string]string) ([]puregrade.Product, error) {
+	return s.repos.Product.GetAll(page, filter)
 }
 
 func (s *ProductService) GetOneByID(id int) (puregrade.Product, error) {

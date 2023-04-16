@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
 )
 
@@ -15,8 +15,8 @@ func NewReviewService(repos *repository.Repository) *ReviewService {
 	return &ReviewService{repos: repos}
 }
 
-func (s *ReviewService) GetAll() ([]puregrade.Review, error) {
-	return s.repos.Review.GetAll()
+func (s *ReviewService) GetAll(page int, productId int) ([]puregrade.Review, error) {
+	return s.repos.Review.GetAll(page, productId)
 }
 
 func (s *ReviewService) GetOneByID(id int) (puregrade.Review, error) {

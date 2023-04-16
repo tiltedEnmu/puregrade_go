@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg/internal/models"
+	puregrade "github.com/ZaiPeeKann/auth-service_pg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,9 +34,14 @@ func (h *HTTPHandler) CreateReview(c *gin.Context) {
 }
 
 func (h *HTTPHandler) GetAllReviews(c *gin.Context) {
-	reviews, err := h.services.Review.GetAll()
-	if err != nil {
+	var queryParams puregrade.RewiewFilter
+	if err := c.BindQuery(&queryParams); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	reviews, err := h.services.Review.GetAll(queryParams.Page, queryParams.ProductId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
