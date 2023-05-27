@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
-	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
+	"github.com/ZaiPeeKann/puregrade"
+	"github.com/ZaiPeeKann/puregrade/internal/repository"
 )
 
 type ReviewService struct {

@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
+	"github.com/ZaiPeeKann/puregrade"
 	"github.com/gin-gonic/gin"
 )
 
-type singInInput struct {
+type singInDTO struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -16,14 +16,14 @@ type singInInput struct {
 func (h *HTTPHandler) singUp(c *gin.Context) {
 	var input puregrade.User
 	if err := c.BindJSON(&input); err != nil {
-		log.Fatal(err.Error())
+		log.Print(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	id, err := h.services.Authorization.CreateUser(input)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Print(err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -34,7 +34,7 @@ func (h *HTTPHandler) singUp(c *gin.Context) {
 }
 
 func (h *HTTPHandler) singIn(c *gin.Context) {
-	var input singInInput
+	var input singInDTO
 	if err := c.BindJSON(&input); err != nil {
 		log.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())

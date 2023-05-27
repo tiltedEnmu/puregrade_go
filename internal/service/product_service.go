@@ -1,8 +1,8 @@
 package service
 
 import (
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
-	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
+	"github.com/ZaiPeeKann/puregrade"
+	"github.com/ZaiPeeKann/puregrade/internal/repository"
 )
 
 type ProductService struct {
@@ -21,8 +21,24 @@ func (s *ProductService) GetOneByID(id int) (puregrade.Product, error) {
 	return s.repos.Product.GetOneByID(id)
 }
 
-func (s *ProductService) Create(product puregrade.Product) (int, error) {
+func (s *ProductService) Create(product puregrade.CreateProductDTO) (int, error) {
 	return s.repos.Product.Create(product)
+}
+
+func (s *ProductService) AddGenres(id int, g []int) error {
+	return s.repos.AddGenres(id, g)
+}
+
+func (s *ProductService) AddPlatforms(id int, p []int) error {
+	return s.repos.AddPlatforms(id, p)
+}
+
+func (s *ProductService) DeleteGenres(id int, g []int) error {
+	return s.repos.DeleteGenres(id, g)
+}
+
+func (s *ProductService) DeletePlatforms(id int, p []int) error {
+	return s.repos.DeletePlatforms(id, p)
 }
 
 func (s *ProductService) Delete(id int) error {

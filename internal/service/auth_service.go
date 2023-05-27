@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
-	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
+	"github.com/ZaiPeeKann/puregrade"
+	"github.com/ZaiPeeKann/puregrade/internal/repository"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
@@ -32,31 +33,32 @@ func (s *AuthService) CreateUser(user puregrade.User) (int, error) {
 	user.Banned = false
 	user.CreatedAt = time.Now()
 	user.Password = generatePasswordHash(user.Password)
-	return s.repos.User.CreateUser(user)
+	user.BanReason = ""
+	user.Avatar = uuid.New().String()
+	return s.repos.User.Create(user)
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	user, err := s.repos.GetUser(username, generatePasswordHash(password))
+	fmt.Print(generatePasswordHash(password))
+	user, err := s.repos.User.Get(username, generatePasswordHash(password))
 	if err != nil {
 		return "", err
 	}
-
 	var token *jwt.Token = jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims{
 		user.Id,
 		jwt.StandardClaims{
-			ExpiresAt: 60 * 60 * 1000, // 1h
+			ExpiresAt: 24 * 60 * 60 * 1000 * 1000000, // 24h
 		},
 	})
-
 	return token.SignedString([]byte(jwtSecretKey))
 }
 
 func (s *AuthService) ParseToken(accessToken string) (int, error) {
-	token, err := jwt.ParseWithClaims(accessToken, jwtClaims{}, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &jwtClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected singing method: %v", t.Header["alg"])
 		}
-		return jwtSecretKey, nil
+		return []byte(jwtSecretKey), nil
 	})
 
 	if err != nil {

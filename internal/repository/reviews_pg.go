@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
+	"github.com/ZaiPeeKann/puregrade"
 	"github.com/jmoiron/sqlx"
 )
 

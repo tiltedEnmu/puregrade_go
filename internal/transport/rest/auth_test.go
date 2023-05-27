@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ZaiPeeKann/auth-service_pg/internal/service"
-	mocks "github.com/ZaiPeeKann/auth-service_pg/internal/service/mocks"
+	"github.com/ZaiPeeKann/puregrade/internal/service"
+	mocks "github.com/ZaiPeeKann/puregrade/internal/service/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

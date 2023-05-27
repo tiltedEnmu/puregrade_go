@@ -3,16 +3,20 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	server "github.com/ZaiPeeKann/auth-service_pg"
-	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
-	"github.com/ZaiPeeKann/auth-service_pg/internal/service"
-	handler "github.com/ZaiPeeKann/auth-service_pg/internal/transport/rest"
+	"github.com/ZaiPeeKann/puregrade"
+	"github.com/ZaiPeeKann/puregrade/internal/repository"
+	"github.com/ZaiPeeKann/puregrade/internal/service"
+	g "github.com/ZaiPeeKann/puregrade/internal/transport/grpc"
+	gh "github.com/ZaiPeeKann/puregrade/internal/transport/grpc/grpchandler"
+	handler "github.com/ZaiPeeKann/puregrade/internal/transport/rest"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -38,15 +42,29 @@ func main() {
 	repos := repository.NewRepository(db)
 	services := service.NewService(repos)
 	handler := handler.NewHTTPHandler(services)
-	srv := new(server.Server)
+	srv := new(puregrade.Server)
+
+	s := grpc.NewServer()
+	grpchandler := g.NewGRPCServer(services)
+	gh.RegisterAuthServer(s, grpchandler)
 
 	go func() {
-		if err := srv.Run(viper.GetString("port"), handler.InitRoutes()); err != nil {
+		if err := srv.Run(viper.GetString("httpport"), handler.InitRoutes()); err != nil {
 			log.Fatalf("Error occured while running http server: %s", err.Error())
 		}
 	}()
 
-	log.Print("Server has been started")
+	log.Print("HTTP server has been started")
+
+	go func() {
+		l, err := net.Listen("tcp", ":"+viper.GetString("grpcport"))
+		if err != nil {
+			log.Printf("Error occured while starting grpc server: %s", err.Error())
+		}
+		if err := s.Serve(l); err != nil {
+			log.Printf("Error occured while running grpc server: %s", err.Error())
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)

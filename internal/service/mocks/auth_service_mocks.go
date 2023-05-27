@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
+	"github.com/ZaiPeeKann/puregrade"
 	"github.com/dgrijalva/jwt-go"
 )
 

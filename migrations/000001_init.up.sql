@@ -1,17 +1,17 @@
 create table users (
     id serial primary key,
     email varchar(255) not null unique,
-    password varchar(31) not null,
+    password varchar(255) not null,
     username varchar(255) not null,
     avatar varchar(255) not null unique,
     banned boolean not null default false,
-    ban_reason varchar(255),
-    status varchar(255),
+    ban_reason varchar(255) not null default '',
+    status varchar(255) not null default '',
     created_at timestamp
 );
 
 create table roles (
-    id serial primary key,
+    id int primary key,
     "name" varchar(255) not null unique
 );
 
@@ -68,7 +68,7 @@ create table review_comments (
         references "reviews" ("id") on delete cascade
 );
 
-create table users_follows (
+create table users_followers (
     id serial primary key,
     follower_id int not null,
     publisher_id int not null,
@@ -81,11 +81,11 @@ create table users_follows (
 create table users_roles (
     id serial primary key,
     user_id int not null,
-    role_id int not null default 0,
+    role_id int not null,
     foreign key ("user_id")
         references "users" ("id") on delete cascade,
     foreign key ("role_id")
-        references "roles" ("id") on delete set default
+        references "roles" ("id") on delete cascade
 );
 
 create table products_platforms (
@@ -107,3 +107,6 @@ create table products_genres (
     foreign key ("genre_id")
         references "genres" ("id") on delete cascade
 );
+
+insert into roles (id, name) values (0, 'USER');
+insert into roles (id, name) values (1, 'ADMIN');

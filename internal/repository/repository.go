@@ -1,13 +1,17 @@
 package repository
 
 import (
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
+	"github.com/ZaiPeeKann/puregrade"
 	"github.com/jmoiron/sqlx"
 )
 
 type User interface {
-	CreateUser(puregrade.User) (int, error)
-	GetUser(username, password string) (puregrade.User, error)
+	Create(puregrade.User) (int, error)
+	Get(username, password string) (puregrade.User, error)
+	GetById(id int) (puregrade.Profile, error)
+	AddFollower(id, publisherId int) error
+	DeleteFollower(id, publisherId int) error
+	Delete(id int, password string) error
 }
 
 type Review interface {
@@ -21,7 +25,11 @@ type Review interface {
 type Product interface {
 	GetAll(page int, filter map[string]string) ([]puregrade.Product, error)
 	GetOneByID(id int) (puregrade.Product, error)
-	Create(product puregrade.Product) (int, error)
+	Create(product puregrade.CreateProductDTO) (int, error)
+	AddGenres(id int, g []int) error
+	AddPlatforms(id int, p []int) error
+	DeleteGenres(id int, g []int) error
+	DeletePlatforms(id int, p []int) error
 	Delete(id int) error
 }
 

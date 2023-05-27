@@ -1,9 +1,13 @@
-port: "8080"
+httpport: "8080"
+grpcport: "9000"
 
 jwtsecretkey: "MySecretKey123"
 
 db:
-  host: "localhost"
+  # for docker
+  host: "host.docker.internal"
+  # for local
+  # host: "localhost"
   port: "5432"
   username: "puregradeuser"
   password: "pgpw4puregrade"

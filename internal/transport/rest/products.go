@@ -1,10 +1,11 @@
 package httphandler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
+	"github.com/ZaiPeeKann/puregrade"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,4 +47,41 @@ func (h *HTTPHandler) GetOneProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, product)
+}
+
+func (h *HTTPHandler) CreateProduct(c *gin.Context) {
+	var input puregrade.CreateProductDTO
+	if err := c.BindJSON(&input); err != nil {
+		log.Print(err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.services.Product.Create(input)
+	if err != nil {
+		log.Print(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
+}
+
+func (h *HTTPHandler) DeleteProduct(c *gin.Context) {
+	var id int
+	if err := c.BindJSON(&id); err != nil {
+		log.Print(err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.Product.Delete(id); err != nil {
+		log.Print(err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.Status(200)
 }

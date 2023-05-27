@@ -1,8 +1,8 @@
 package service
 
 import (
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
-	"github.com/ZaiPeeKann/auth-service_pg/internal/repository"
+	"github.com/ZaiPeeKann/puregrade"
+	"github.com/ZaiPeeKann/puregrade/internal/repository"
 )
 
 type Authorization interface {
@@ -12,9 +12,10 @@ type Authorization interface {
 }
 
 type User interface {
-	GetProfile(id int) (puregrade.User, error)
-	FollowUser(id int) error
-	MuteUser(id int) error
+	GetProfile(id int) (puregrade.Profile, error)
+	Delete(id int, password string) error
+	FollowUser(id, publisherId int) error
+	UnfollowUser(id, publisherId int) error
 }
 
 type Review interface {
@@ -28,11 +29,17 @@ type Review interface {
 type Product interface {
 	GetAll(page int, filter map[string]string) ([]puregrade.Product, error)
 	GetOneByID(id int) (puregrade.Product, error)
+	Create(product puregrade.CreateProductDTO) (int, error)
+	AddGenres(id int, g []int) error
+	AddPlatforms(id int, p []int) error
+	DeleteGenres(id int, g []int) error
+	DeletePlatforms(id int, p []int) error
+	Delete(id int) error
 }
 
 type Service struct {
 	Authorization
-	// User
+	User
 	Review
 	Product
 }
@@ -40,8 +47,8 @@ type Service struct {
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos),
-		// User:          NewUserService(repos),
-		Review:  NewReviewService(repos),
-		Product: NewProductService(repos),
+		User:          NewUserService(repos),
+		Review:        NewReviewService(repos),
+		Product:       NewProductService(repos),
 	}
 }

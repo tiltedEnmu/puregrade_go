@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package grpchandler;
+
+option go_package = "./grpchandler";
+
+message SingInRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message SingInResponse {
+    string token = 1;
+}
+
+enum Roles {
+    ROLES_USER = 0;
+    ROLES_ADMIN = 1;
+    // ...
+}
+
+message SingUpRequest {
+    string username = 1;
+    string email = 2;
+    string password = 3;
+    string avatar = 4;
+    repeated Roles roles = 5; 
+}
+
+message SingUpResponse {
+    int32 id = 1;
+}
+
+service Auth {
+    rpc SingIn(SingInRequest) returns (SingInResponse) {}
+    rpc SingUp(SingUpRequest) returns (SingUpResponse) {}
+}

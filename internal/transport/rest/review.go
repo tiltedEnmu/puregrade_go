@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	puregrade "github.com/ZaiPeeKann/auth-service_pg"
+	"github.com/ZaiPeeKann/puregrade"
 	"github.com/gin-gonic/gin"
 )
 
