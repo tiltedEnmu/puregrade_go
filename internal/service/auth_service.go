@@ -39,8 +39,7 @@ func (s *AuthService) CreateUser(user puregrade.User) (int, error) {
 }
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	fmt.Print(generatePasswordHash(password))
-	user, err := s.repos.User.Get(username, generatePasswordHash(password))
+	user, err := s.repos.User.Get(username)
 	if err != nil {
 		return "", err
 	}

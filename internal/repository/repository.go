@@ -7,7 +7,7 @@ import (
 
 type User interface {
 	Create(puregrade.User) (int, error)
-	Get(username, password string) (puregrade.User, error)
+	Get(username string) (puregrade.User, error)
 	GetById(id int) (puregrade.Profile, error)
 	AddFollower(id, publisherId int) error
 	DeleteFollower(id, publisherId int) error

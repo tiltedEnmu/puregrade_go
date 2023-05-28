@@ -55,7 +55,7 @@ func (r *UserPostgres) Create(user puregrade.User) (int, error) {
 	return id, err
 }
 
-func (r *UserPostgres) Get(username, password string) (puregrade.User, error) {
+func (r *UserPostgres) Get(username string) (puregrade.User, error) {
 	var user puregrade.User
 	var q string = `select users.id, users.username, users.avatar, users.banned, users.ban_reason, users.status,
 					array(
@@ -68,7 +68,7 @@ func (r *UserPostgres) Get(username, password string) (puregrade.User, error) {
 					) as roles
 					from users  
 					where users.username = $1 and users.password = $2`
-	err := r.db.QueryRow(q, username, password).Scan(&user.Id, &user.Email, &user.Avatar, &user.Banned,
+	err := r.db.QueryRow(q, username).Scan(&user.Id, &user.Email, &user.Avatar, &user.Banned,
 		&user.BanReason, &user.Status, pq.Array(&user.Followers), pq.Array(&user.Roles))
 	if err == sql.ErrNoRows {
 		return user, errors.New("invalid password or username")
