@@ -5,9 +5,9 @@ jwtsecretkey: "MySecretKey123"
 
 db:
   # for docker
-  host: "host.docker.internal"
+  # host: "host.docker.internal"
   # for local
-  # host: "localhost"
+  host: "localhost"
   port: "5432"
   username: "puregradeuser"
   password: "pgpw4puregrade"
