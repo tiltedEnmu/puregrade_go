@@ -28,11 +28,12 @@ func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int, error
 		return 0, err
 	}
 
+	defer tx.Rollback()
+
 	var id int
 	createProductQuery := "insert into products (title, body, release_date, created_at) values ($1, $2, $3, $4) returning id"
 	row := tx.QueryRow(createProductQuery, product.Title, product.Body, product.ReleaseDate, time.Now())
 	if err := row.Scan(&id); err != nil {
-		tx.Rollback()
 		return 0, err
 	}
 
@@ -40,7 +41,6 @@ func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int, error
 	for _, value := range product.Genres {
 		_, err = tx.Exec(createProductGenresQuery, id, value)
 		if err != nil {
-			tx.Rollback()
 			return 0, err
 		}
 	}
@@ -49,12 +49,15 @@ func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int, error
 	for _, value := range product.Platforms {
 		_, err = tx.Exec(createProductPlatformsQuery, id, value)
 		if err != nil {
-			tx.Rollback()
 			return 0, err
 		}
 	}
 
-	return id, tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return id, err
 }
 
 func (r *ProductPostgres) GetAll(page int, filter map[string]string) ([]puregrade.Product, error) {

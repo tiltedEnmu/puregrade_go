@@ -13,7 +13,6 @@ func (h *HTTPHandler) AuthMiddleware(c *gin.Context) {
 	header := strings.Split(c.GetHeader("Authorization"), " ")
 	if (len(header) != 2) || (header[0] != "Bearer") {
 		c.AbortWithStatus(http.StatusUnauthorized)
-		fmt.Print(header)
 		return
 	}
 
@@ -22,6 +21,7 @@ func (h *HTTPHandler) AuthMiddleware(c *gin.Context) {
 	id, err := h.services.Authorization.ParseToken(header[1])
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, "Token parse error: "+err.Error())
+		return
 	}
 
 	c.Set("UserId", id)

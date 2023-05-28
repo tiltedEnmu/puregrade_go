@@ -30,12 +30,13 @@ func (r *UserPostgres) Create(user puregrade.User) (int, error) {
 		return 0, err
 	}
 
+	defer tx.Rollback()
+
 	var id int
 	createUserQuery := "insert into users (email, username, password, avatar, created_at) values ($1, $2, $3, $4, $5) returning id"
 
 	row := tx.QueryRow(createUserQuery, user.Email, user.Username, user.Password, user.Avatar, time.Now())
 	if err := row.Scan(&id); err != nil {
-		tx.Rollback()
 		return 0, err
 	}
 
@@ -43,12 +44,15 @@ func (r *UserPostgres) Create(user puregrade.User) (int, error) {
 	for _, value := range user.Roles {
 		_, err = tx.Exec(createUserRoleQuery, id, value)
 		if err != nil {
-			tx.Rollback()
 			return 0, err
 		}
 	}
 
-	return id, tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return id, err
 }
 
 func (r *UserPostgres) Get(username, password string) (puregrade.User, error) {
