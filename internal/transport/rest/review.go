@@ -49,7 +49,7 @@ func (h *HTTPHandler) GetAllReviews(c *gin.Context) {
 }
 
 func (h *HTTPHandler) GetOneReview(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64) // string to int64
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
@@ -97,7 +97,7 @@ func (h *HTTPHandler) DeleteReview(c *gin.Context) {
 		return
 	}
 
-	var reviewId int
+	var reviewId int64
 	if err := c.BindJSON(&reviewId); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return

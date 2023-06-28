@@ -16,10 +16,10 @@ func NewReviewPostgres(db *sqlx.DB) *ReviewPostgres {
 	return &ReviewPostgres{db: db}
 }
 
-func (r *ReviewPostgres) Create(review puregrade.Review) (int, error) {
+func (r *ReviewPostgres) Create(review puregrade.Review) (int64, error) {
 	var query string = `insert into reviews (body, author_id, product_id, rate, created_at, updated_at)
 						values ($1, $2, $3, $4, $5, $6) returning id`
-	var id int
+	var id int64
 	row := r.db.QueryRow(query, review.Title, review.Body, review.Author.Id, review.Product.Id, review.Rate, time.Now())
 	if err := row.Scan(&id); err != nil {
 		return 0, err
@@ -28,7 +28,7 @@ func (r *ReviewPostgres) Create(review puregrade.Review) (int, error) {
 	return id, nil
 }
 
-func (r *ReviewPostgres) GetAll(page int, productId int) ([]puregrade.Review, error) {
+func (r *ReviewPostgres) GetAll(page int, productId int64) ([]puregrade.Review, error) {
 	var reviews []puregrade.Review
 	var query string = `select * from reviews
 						inner join reviews_products as p on p.review_id = reviews.id
@@ -36,12 +36,11 @@ func (r *ReviewPostgres) GetAll(page int, productId int) ([]puregrade.Review, er
 	if productId != 0 {
 		query += fmt.Sprintf("where products.id = %d", productId)
 	}
-	query += fmt.Sprintf("limit %d offset %d", Limit, Limit*(page-1))
 	err := r.db.Select(&reviews, query)
 	return reviews, err
 }
 
-func (r *ReviewPostgres) GetOneByID(id int) (puregrade.Review, error) {
+func (r *ReviewPostgres) GetOneByID(id int64) (puregrade.Review, error) {
 	var review puregrade.Review
 	var query string = `select * from reviews
 						inner join reviews_products as p on p.review_id = reviews.id
@@ -51,13 +50,13 @@ func (r *ReviewPostgres) GetOneByID(id int) (puregrade.Review, error) {
 	return review, err
 }
 
-func (r *ReviewPostgres) Update(id int, title, body string) error {
+func (r *ReviewPostgres) Update(id int64, title, body string) error {
 	var query string = `update reviews set title = $1, body = $2 where id = $3`
 	_, err := r.db.Exec(query, id)
 	return err
 }
 
-func (r *ReviewPostgres) Delete(id int) error {
+func (r *ReviewPostgres) Delete(id int64) error {
 	var query string = `delete from reviews where id = $1`
 	_, err := r.db.Exec(query, id)
 	return err

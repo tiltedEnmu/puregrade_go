@@ -27,20 +27,29 @@ func main() {
 		log.Fatalf("Config init error: %s", err.Error())
 	}
 
-	db, err := repository.NewPostgresDB(repository.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		Password: viper.GetString("db.password"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
+	postgres, err := repository.NewPostgresDB(repository.PGConfig{
+		Host:     viper.GetString("postgres.host"),
+		Port:     viper.GetString("postgres.port"),
+		Username: viper.GetString("postgres.username"),
+		Password: viper.GetString("postgres.password"),
+		DBName:   viper.GetString("postgres.dbname"),
+		SSLMode:  viper.GetString("postgres.sslmode"),
+	})
+
+	redis := repository.NewRedisDB(repository.RedisConfig{
+		Host:     viper.GetString("redis.host"),
+		Port:     viper.GetString("redis.port"),
+		Password: viper.GetString("redis.password"),
 	})
 
 	if err != nil {
-		log.Fatalf("DB init error: %s", err.Error())
+		log.Fatalf("PostgreSQL database init error: %s", err.Error())
 	}
 
-	repos := repository.NewRepository(db)
+	repos := repository.NewRepository(&repository.Databases{
+		Postgres: postgres,
+		Redis:    redis,
+	})
 	services := service.NewService(repos)
 	handler := handler.NewHTTPHandler(services)
 	srv := new(puregrade.Server)
@@ -75,7 +84,9 @@ func main() {
 	if err = srv.Shutdown(ctx); err != nil {
 		log.Printf("Error occured on server shutting down: %s", err.Error())
 	}
-	if err = db.Close(); err != nil {
+
+	if err = postgres.Close(); err != nil {
 		log.Printf("Error occured on db shutting down: %s", err.Error())
 	}
+
 }

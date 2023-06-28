@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ZaiPeeKann/puregrade"
@@ -23,13 +24,13 @@ func NewAuthService(repos *repository.Repository) *AuthService {
 }
 
 type jwtClaims struct {
-	UserId int `json:"user_id"`
+	UserId int64 `json:"user_id"`
 	jwt.StandardClaims
 }
 
 var jwtSecretKey string = viper.GetString("jwtsecretkey")
 
-func (s *AuthService) CreateUser(user puregrade.User) (int, error) {
+func (s *AuthService) CreateUser(user puregrade.User) (int64, error) {
 	user.Banned = false
 	user.CreatedAt = time.Now()
 	user.Password = generatePasswordHash(user.Password)
@@ -38,22 +39,8 @@ func (s *AuthService) CreateUser(user puregrade.User) (int, error) {
 	return s.repos.User.Create(user)
 }
 
-func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	user, err := s.repos.User.Get(username)
-	if err != nil {
-		return "", err
-	}
-	var token *jwt.Token = jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims{
-		user.Id,
-		jwt.StandardClaims{
-			ExpiresAt: 24 * 60 * 60 * 1000 * 1000000, // 24h
-		},
-	})
-	return token.SignedString([]byte(jwtSecretKey))
-}
-
-func (s *AuthService) ParseToken(accessToken string) (int, error) {
-	token, err := jwt.ParseWithClaims(accessToken, &jwtClaims{}, func(t *jwt.Token) (interface{}, error) {
+func (s *AuthService) ParseAccessToken(token string) (int64, error) {
+	parsedToken, err := jwt.ParseWithClaims(token, &jwtClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected singing method: %v", t.Header["alg"])
 		}
@@ -64,11 +51,34 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 		return 0, err
 	}
 
-	if claims, ok := token.Claims.(*jwtClaims); ok && token.Valid {
+	if claims, ok := parsedToken.Claims.(*jwtClaims); ok && parsedToken.Valid {
 		return claims.UserId, nil
 	}
 
 	return 0, errors.New("invalid access token")
+}
+
+func (s *AuthService) GenerateTokens(username, password string) (string, string, error) {
+
+	user, err := s.repos.User.Get(username)
+	if (err != nil) || (user.Password != password) {
+		return "", "", err
+	}
+
+	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims{
+		user.Id,
+		jwt.StandardClaims{
+			ExpiresAt: int64(24 * time.Hour),
+		},
+	}).SignedString([]byte(jwtSecretKey))
+
+	var refreshToken string = uuid.New().String()
+
+	if err = s.repos.Auth.UpsertRefreshToken(strconv.FormatInt(user.Id, 10), refreshToken); err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, err
 }
 
 func generatePasswordHash(password string) string {

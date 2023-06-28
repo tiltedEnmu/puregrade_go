@@ -11,18 +11,22 @@ import (
 
 type GRPCServer struct {
 	services *service.Service
+	pb.UnimplementedAuthServer
 }
 
 func NewGRPCServer(services *service.Service) *GRPCServer {
 	return &GRPCServer{services: services}
 }
 
+func (s *GRPCServer) mustEmbedUnimplementedAuthServer() { return }
+
 func (s *GRPCServer) SingIn(ctx context.Context, req *pb.SingInRequest) (*pb.SingInResponse, error) {
 
-	token, err := s.services.Authorization.GenerateToken(req.GetUsername(), req.GetPassword())
+	access, refresh, err := s.services.Authorization.GenerateTokens(req.GetUsername(), req.GetPassword())
 
 	return &pb.SingInResponse{
-		Token: token,
+		AccessToken:  access,
+		RefreshToken: refresh,
 	}, err
 }
 
@@ -34,7 +38,7 @@ func (s *GRPCServer) SingUp(ctx context.Context, req *pb.SingUpRequest) (*pb.Sin
 	user.Avatar = req.GetAvatar()
 	for _, v := range req.GetRoles() {
 		fmt.Print(int(v))
-		user.Roles = append(user.Roles, int(v))
+		user.Roles = append(user.Roles, int64(v))
 	}
 	id, err := s.services.Authorization.CreateUser(user)
 

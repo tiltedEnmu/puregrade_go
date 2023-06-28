@@ -8,8 +8,8 @@ import (
 )
 
 type CreateDeleteGenresDTO struct {
-	ProductId int   `json:"productId"`
-	GenresId  []int `json:"genres"`
+	ProductId int64   `json:"productId"`
+	GenresId  []int64 `json:"genres"`
 }
 
 func (h *HTTPHandler) AddGenres(c *gin.Context) {

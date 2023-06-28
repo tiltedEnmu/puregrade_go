@@ -41,7 +41,7 @@ func (h *HTTPHandler) singIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
+	access, refresh, err := h.services.Authorization.GenerateTokens(input.Username, input.Password)
 	if err != nil {
 		log.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
@@ -49,6 +49,7 @@ func (h *HTTPHandler) singIn(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+		"access_token":  access,
+		"refresh_token": refresh,
 	})
 }

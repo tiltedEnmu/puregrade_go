@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ZaiPeeKann/puregrade"
@@ -18,9 +19,9 @@ func NewUserPostgres(db *sqlx.DB) *UserPostgres {
 	return &UserPostgres{db: db}
 }
 
-var DefaultUserRoleId int = 0
+var DefaultUserRoleId int64 = 0
 
-func (r *UserPostgres) Create(user puregrade.User) (int, error) {
+func (r *UserPostgres) Create(user puregrade.User) (int64, error) {
 	if len(user.Roles) == 0 {
 		user.Roles = append(user.Roles, DefaultUserRoleId)
 	}
@@ -32,7 +33,7 @@ func (r *UserPostgres) Create(user puregrade.User) (int, error) {
 
 	defer tx.Rollback()
 
-	var id int
+	var id int64
 	createUserQuery := "insert into users (email, username, password, avatar, created_at) values ($1, $2, $3, $4, $5) returning id"
 
 	row := tx.QueryRow(createUserQuery, user.Email, user.Username, user.Password, user.Avatar, time.Now())
@@ -57,7 +58,7 @@ func (r *UserPostgres) Create(user puregrade.User) (int, error) {
 
 func (r *UserPostgres) Get(username string) (puregrade.User, error) {
 	var user puregrade.User
-	var q string = `select users.id, users.username, users.avatar, users.banned, users.ban_reason, users.status,
+	var q string = `select users.id, users.email, users.avatar, users.banned, users.ban_reason, users.status,
 					array(
 						select uf.follower_id from users_followers as uf
 						where users.id = uf.publisher_id
@@ -67,16 +68,18 @@ func (r *UserPostgres) Get(username string) (puregrade.User, error) {
 						where users.id = ur.user_id
 					) as roles
 					from users  
-					where users.username = $1 and users.password = $2`
+					where users.username = $1`
 	err := r.db.QueryRow(q, username).Scan(&user.Id, &user.Email, &user.Avatar, &user.Banned,
 		&user.BanReason, &user.Status, pq.Array(&user.Followers), pq.Array(&user.Roles))
+	fmt.Print(user.Id)
+	fmt.Print(user.Roles)
 	if err == sql.ErrNoRows {
-		return user, errors.New("invalid password or username")
+		return user, errors.New("invalid username")
 	}
 	return user, err
 }
 
-func (r *UserPostgres) GetById(id int) (puregrade.Profile, error) {
+func (r *UserPostgres) GetById(id int64) (puregrade.Profile, error) {
 	var p puregrade.Profile
 	var q string = `select users.id, users.username, users.avatar, users.status,
 					array(
@@ -97,7 +100,7 @@ func (r *UserPostgres) GetById(id int) (puregrade.Profile, error) {
 	return p, err
 }
 
-func (r *UserPostgres) CheckUserRole(id int, role int) (bool, error) {
+func (r *UserPostgres) CheckUserRole(id, role int64) (bool, error) {
 	var ok bool
 	var q string = `select exists (
 		select id from users_roles where user_id = $1 and role_id = $2
@@ -106,19 +109,19 @@ func (r *UserPostgres) CheckUserRole(id int, role int) (bool, error) {
 	return ok, err
 }
 
-func (r *UserPostgres) AddFollower(id, publisherId int) error {
+func (r *UserPostgres) AddFollower(id, publisherId int64) error {
 	var q string = `insert into users_followers (follower_id, publisher_id) values ($1, $2)`
 	_, err := r.db.Exec(q, id, publisherId)
 	return err
 }
 
-func (r *UserPostgres) DeleteFollower(id, publisherId int) error {
+func (r *UserPostgres) DeleteFollower(id, publisherId int64) error {
 	var q string = `delete from users_followers where follower_id = $1 and publisher_id = $2`
 	_, err := r.db.Exec(q, id, publisherId)
 	return err
 }
 
-func (r *UserPostgres) Delete(id int, password string) error {
+func (r *UserPostgres) Delete(id int64, password string) error {
 	var q string = `delete from users where id = $1 and password = $2`
 	_, err := r.db.Exec(q, id, password)
 	return err

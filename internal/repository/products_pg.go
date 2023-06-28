@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,9 +10,6 @@ import (
 	"github.com/lib/pq"
 )
 
-// limit posts in GetAll method
-const Limit int = 20
-
 type ProductPostgres struct {
 	db *sqlx.DB
 }
@@ -22,7 +18,7 @@ func NewProductPostgres(db *sqlx.DB) *ProductPostgres {
 	return &ProductPostgres{db: db}
 }
 
-func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int, error) {
+func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int64, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -30,7 +26,7 @@ func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int, error
 
 	defer tx.Rollback()
 
-	var id int
+	var id int64
 	createProductQuery := "insert into products (title, body, release_date, created_at) values ($1, $2, $3, $4) returning id"
 	row := tx.QueryRow(createProductQuery, product.Title, product.Body, product.ReleaseDate, time.Now())
 	if err := row.Scan(&id); err != nil {
@@ -60,31 +56,52 @@ func (r *ProductPostgres) Create(product puregrade.CreateProductDTO) (int, error
 	return id, err
 }
 
-func (r *ProductPostgres) GetAll(page int, filter map[string]string) ([]puregrade.Product, error) {
+func (r *ProductPostgres) GetAll(offset, limit int, genres, platforms []int64, orderBy string, isAsc bool) ([]puregrade.Product, error) {
 	var products []puregrade.Product
 	var query string = `select * from products
 						inner join products_platforms as p on p.product_id = products.id
-						inner join platforms on p.platform_id = platforms.id
-						inner join products_genres as g on g.product_id = products.id
-						inner join genres on g.genre_id = genres.id`
-	if page <= 0 {
-		return products, errors.New("page must not be negative")
-	}
-	if len(filter) != 0 {
+						inner join products_genres as g on g.product_id = products.id`
+	if genres != nil || platforms != nil {
 		query += "where "
-		for k, v := range filter {
-			query += k + " = " + v + " and "
+	}
+
+	if genres != nil {
+		for _, v := range genres {
+			query += fmt.Sprintf("g.id = %d and ", v)
 		}
+	}
+
+	if platforms != nil {
+		for _, v := range genres {
+			query += fmt.Sprintf("p.id = %d and ", v)
+		}
+		query = query[:len(query)-5] // delete last "and"
+	} else {
 		query = query[:len(query)-5]
 	}
 
-	query += fmt.Sprintf("limit %d offset %d", Limit, Limit*(page-1))
+	if limit > 0 {
+		query += fmt.Sprintf(" limit %d", limit)
+	}
+	if offset > 0 {
+		query += fmt.Sprintf(" offset %d", offset)
+	}
+
+	if orderBy != "" {
+		query += fmt.Sprintf(" order by", orderBy)
+		if isAsc == true {
+			query += " asc"
+		} else {
+			query += " desc"
+		}
+	}
 
 	err := r.db.Select(&products, query)
+
 	return products, err
 }
 
-func (r *ProductPostgres) GetOneByID(id int) (puregrade.Product, error) {
+func (r *ProductPostgres) GetOneByID(id int64) (puregrade.Product, error) {
 	var product puregrade.Product
 	var query string = `select p.id,
 						p.title,
@@ -109,7 +126,7 @@ func (r *ProductPostgres) GetOneByID(id int) (puregrade.Product, error) {
 	return product, err
 }
 
-func (r *ProductPostgres) DeleteGenres(id int, g []int) error {
+func (r *ProductPostgres) DeleteGenres(id int64, g []int64) error {
 	var sb strings.Builder
 	var q string = `delete from products_genres where product_id = $1 and genre_id in(`
 	sb.WriteString(q)
@@ -123,7 +140,7 @@ func (r *ProductPostgres) DeleteGenres(id int, g []int) error {
 	return err
 }
 
-func (r *ProductPostgres) DeletePlatforms(id int, p []int) error {
+func (r *ProductPostgres) DeletePlatforms(id int64, p []int64) error {
 	var sb strings.Builder
 	var q string = `delete from products_platforms where product_id = $1 and platform_id in(`
 	sb.WriteString(q)
@@ -137,7 +154,7 @@ func (r *ProductPostgres) DeletePlatforms(id int, p []int) error {
 	return err
 }
 
-func (r *ProductPostgres) AddGenres(id int, g []int) error {
+func (r *ProductPostgres) AddGenres(id int64, g []int64) error {
 	var sb strings.Builder
 	var q string = `insert into products_genres (product_id, genre_id) values`
 	sb.WriteString(q)
@@ -148,7 +165,7 @@ func (r *ProductPostgres) AddGenres(id int, g []int) error {
 	return err
 }
 
-func (r *ProductPostgres) AddPlatforms(id int, p []int) error {
+func (r *ProductPostgres) AddPlatforms(id int64, p []int64) error {
 	var sb strings.Builder
 	var q string = `insert into products_platforms (product_id, platform_id) values`
 	sb.WriteString(q)
@@ -159,7 +176,7 @@ func (r *ProductPostgres) AddPlatforms(id int, p []int) error {
 	return err
 }
 
-func (r *ProductPostgres) Delete(id int) error {
+func (r *ProductPostgres) Delete(id int64) error {
 	var query string = `delete from products where id = $1`
 	_, err := r.db.Query(query, id)
 	return err

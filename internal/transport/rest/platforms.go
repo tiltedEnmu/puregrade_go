@@ -8,8 +8,8 @@ import (
 )
 
 type CreateDeletePlatformsDTO struct {
-	ProductId   int   `json:"productId"`
-	PlatformsId []int `json:"platforms"`
+	ProductId   int64   `json:"productId"`
+	PlatformsId []int64 `json:"platforms"`
 }
 
 func (h *HTTPHandler) AddPlatforms(c *gin.Context) {

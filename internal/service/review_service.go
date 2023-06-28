@@ -15,23 +15,23 @@ func NewReviewService(repos *repository.Repository) *ReviewService {
 	return &ReviewService{repos: repos}
 }
 
-func (s *ReviewService) GetAll(page int, productId int) ([]puregrade.Review, error) {
+func (s *ReviewService) GetAll(page int, productId int64) ([]puregrade.Review, error) {
 	return s.repos.Review.GetAll(page, productId)
 }
 
-func (s *ReviewService) GetOneByID(id int) (puregrade.Review, error) {
+func (s *ReviewService) GetOneByID(id int64) (puregrade.Review, error) {
 	return s.repos.Review.GetOneByID(id)
 }
 
-func (s *ReviewService) Create(review puregrade.Review) (int, error) {
+func (s *ReviewService) Create(review puregrade.Review) (int64, error) {
 	return s.repos.Review.Create(review)
 }
 
-func (s *ReviewService) Update(id int, title, body string) error {
+func (s *ReviewService) Update(id int64, title, body string) error {
 	return s.repos.Review.Update(id, title, body)
 }
 
-func (s *ReviewService) Delete(id, userId int) error {
+func (s *ReviewService) Delete(id, userId int64) error {
 	rewiew, err := s.repos.Review.GetOneByID(id)
 	if err != nil {
 		return errors.New("review not found")

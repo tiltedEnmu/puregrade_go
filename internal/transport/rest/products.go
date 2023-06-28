@@ -10,21 +10,13 @@ import (
 )
 
 func (h *HTTPHandler) GetAllProducts(c *gin.Context) {
-	var queryParams puregrade.ProductFilter
-	filter := make(map[string]string)
-	if err := c.BindQuery(&queryParams); err != nil {
+	var data puregrade.ProductFilter
+	if err := c.BindQuery(&data); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if queryParams.Genre != "" {
-		filter["genre"] = queryParams.Genre
-	}
-	if queryParams.Platform != "" {
-		filter["platform"] = queryParams.Platform
-	}
-
-	products, err := h.services.Product.GetAll(queryParams.Page, filter)
+	products, err := h.services.Product.GetAll(data)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 		return
@@ -34,7 +26,7 @@ func (h *HTTPHandler) GetAllProducts(c *gin.Context) {
 }
 
 func (h *HTTPHandler) GetOneProduct(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64) // string to int64
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
@@ -70,7 +62,7 @@ func (h *HTTPHandler) CreateProduct(c *gin.Context) {
 }
 
 func (h *HTTPHandler) DeleteProduct(c *gin.Context) {
-	var id int
+	var id int64
 	if err := c.BindJSON(&id); err != nil {
 		log.Print(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())

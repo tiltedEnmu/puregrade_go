@@ -3,7 +3,7 @@ package puregrade
 import "time"
 
 type Review struct {
-	Id        int       `json:"id" db:"id"`
+	Id        int64     `json:"id" db:"id"`
 	Title     string    `json:"title" db:"title"`
 	Body      string    `json:"body" db:"body"` // markdown text
 	Author    User      `json:"author" db:"author"`
@@ -15,11 +15,11 @@ type Review struct {
 
 type RewiewFilter struct {
 	Page      int
-	ProductId int
+	ProductId int64
 }
 
 type ReviewLike struct {
-	Id       int `json:"id" db:"id"`
-	ReviewId int `json:"reviewId" db:"review_id"`
-	UserId   int `json:"userId" db:"user_id"`
+	Id       int64 `json:"id" db:"id"`
+	ReviewId int64 `json:"reviewId" db:"review_id"`
+	UserId   int64 `json:"userId" db:"user_id"`
 }
