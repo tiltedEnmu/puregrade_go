@@ -2,7 +2,7 @@
 
 This project is a server for a review aggregator (like metacritic or IGN, for example). The project aims to demonstrate my knowledge and skills in web development. The server can process http and grpc* requests and is written according to clean architecture principles.
 
-Stack: PostgreSQL + sqlx, Docker, Gin, gRPC, jwt, testify (for tests).
+Stack: PostgreSQL + sqlx, Docker, Gin, gRPC, jwt, testify.
 
 ## How to start
 
